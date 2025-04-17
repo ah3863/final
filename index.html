@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>NYC Zoning Height Restrictions Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css"
+    type="text/css"
+  />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    .title-box {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-family: sans-serif;
+      text-align: center;
+      z-index: 1;
+    }
+    .mapboxgl-ctrl-geocoder {
+      min-width: 300px;
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="title-box">
+    <h1 style="margin: 0; font-size: 20px;">NYC Zoning Height Restrictions Explorer</h1>
+    <p style="margin: 4px 0 0 0; font-size: 14px;">Explore New York City’s zoning districts and learn about different zoning height restrictions that shape the city.</p>
+  </div>
+  <div id="map"></div>
+
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYWgzODYzIiwiYSI6ImNtOWJ2ZzJoMDBreHIyanBuYmFvb3lvam0ifQ.Zeg12vyxmHuz86vEocSGdw';
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [-73.95, 40.67], // Centered on Brooklyn
+      zoom: 10
+    });
+
+    // Add geocoder control
+    const geocoder = new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken,
+      mapboxgl: mapboxgl,
+      marker: false
+    });
+    map.addControl(geocoder);
+
+    map.on('load', () => {
+      // Load income layer
+      map.addSource('income', {
+        type: 'geojson',
+        data: './data/income.json'
+      });
+
+      map.addLayer({
+        id: 'income-layer',
+        type: 'fill',
+        source: 'income',
+        paint: {
+          'fill-color': [
+            'interpolate',
+            ['linear'],
+            ['get', 'income'],
+            20000, '#fef0d9',
+            60000, '#fdbb84',
+            100000, '#e34a33'
+          ],
+          'fill-opacity': 0.7
+        }
+      });
+
+      // Load subway layer
+      map.addSource('subway', {
+        type: 'geojson',
+        data: './data/subway.json'
+      });
+
+      map.addLayer({
+        id: 'subway-points',
+        type: 'circle',
+        source: 'subway',
+        paint: {
+          'circle-radius': 5,
+          'circle-color': '#006d2c',
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#fff'
+        }
+      });
+    });
+  </script>
+</body>
+</html>
